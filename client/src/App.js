@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import ipfs from "./ipfs";
 import Storage from "./utils/Storage.json";
 import { ethers } from "ethers";
+import Gallery from "react-grid-gallery";
 
 import "./css/oswald.css";
 import "./css/open-sans.css";
@@ -47,7 +48,17 @@ const App = () => {
           console.log("Going to pop wallet now to pay gas...");
           let yourImages = await connectedContract.get();
           console.log("images", yourImages);
-          setImages(yourImages);
+          setImages(
+            yourImages.map((image) => {
+              return {
+                src: `https://ipfs.io/ipfs/${image}`,
+                thumbnail:
+                  "https://react.semantic-ui.com/images/wireframe/image.png",
+                thumbnailWidth: 320,
+                thumbnailHeight: 174,
+              };
+            })
+          );
         } else {
           console.log("Ethereum object doesn't exist!");
         }
@@ -167,6 +178,7 @@ const App = () => {
         </a>
       </nav>
       {currentAccount === "" ? renderNotConnectedContainer() : renderUploadUi()}
+      <Gallery images={images} />,
     </div>
   );
 };
