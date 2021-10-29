@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import ipfs from "./ipfs";
 import Storage from "./utils/Storage.json";
 import { ethers } from "ethers";
-import Gallery from "react-grid-gallery";
+// import Gallery from "react-grid-gallery";
+import Gallery from "react-photo-gallery";
+import reactImageSize from "react-image-size";
 
 import "./css/oswald.css";
 import "./css/open-sans.css";
@@ -16,6 +18,7 @@ const App = () => {
   const [ipfsHash, setIpfsHash] = useState("");
   const [buffer, setBuffer] = useState("");
   const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const checkIfWalletIsConnected = async () => {
     const { ethereum } = window;
@@ -48,17 +51,20 @@ const App = () => {
           console.log("Going to pop wallet now to pay gas...");
           let yourImages = await connectedContract.get();
           console.log("images", yourImages);
-          setImages(
-            yourImages.map((image) => {
-              return {
-                src: `https://ipfs.io/ipfs/${image}`,
-                thumbnail:
-                  "https://react.semantic-ui.com/images/wireframe/image.png",
-                thumbnailWidth: 320,
-                thumbnailHeight: 174,
-              };
-            })
-          );
+          yourImages = yourImages.map(async (image) => {
+            const imgUrl = `https://ipfs.io/ipfs/${image}`;
+            const { width, height } = await reactImageSize(imgUrl);
+            console.log(width, height);
+            return {
+              src: imgUrl,
+              width,
+              height,
+            };
+          });
+          Promise.all(yourImages).then((images) => {
+            console.log("images", images);
+            setImages(images);
+          });
         } else {
           console.log("Ethereum object doesn't exist!");
         }
@@ -119,19 +125,20 @@ const App = () => {
             Storage.abi,
             signer
           );
-
           console.log("Going to pop wallet now to pay gas...");
           let Txn = await connectedContract.add(result[0].hash);
-
-          console.log("Mining...please wait.");
+          setLoading(true);
+          console.warn("Mining...please wait.");
           await Txn.wait();
           console.log(Txn);
           console.log(
             `Mined, see transaction: https://rinkeby.etherscan.io/tx/${Txn.hash}`
           );
+          setLoading(false);
         } else {
           console.log("Ethereum object doesn't exist!");
         }
+        console.log(loading);
       } catch (error) {
         console.log(error);
       }
@@ -165,20 +172,30 @@ const App = () => {
             <input type="file" onChange={captureFile} />
             <input type="submit" />
           </form>
+          {loading === true ? renderLoading() : null}
         </div>
       </div>
     </main>
   );
 
+  const renderLoading = () => {
+    return (
+      <main className="container">
+        <img src="https://c.tenor.com/7zKZuIk31GEAAAAM/bird-dance.gif" />
+      </main>
+    );
+  };
+
   return (
     <div className="App">
       <nav className="navbar pure-menu pure-menu-horizontal">
         <a href="#" className="pure-menu-heading pure-menu-link">
-          IPFS File Upload DApp
+          IPFS Image Upload DApp
         </a>
       </nav>
       {currentAccount === "" ? renderNotConnectedContainer() : renderUploadUi()}
-      <Gallery images={images} />,
+      <h2>Images associated with {currentAccount}</h2>
+      <Gallery photos={images} />
     </div>
   );
 };
