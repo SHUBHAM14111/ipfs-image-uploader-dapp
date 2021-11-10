@@ -89,3 +89,7 @@ code {
   background-size: 200% 200%;
   animation: gradient-animation 4s ease infinite;
 }
+
+.loading {
+  margin-left: 200px;
+}

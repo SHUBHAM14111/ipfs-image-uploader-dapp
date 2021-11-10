@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import ipfs from "./ipfs";
 import Storage from "./utils/Storage.json";
 import { ethers } from "ethers";
-// import Gallery from "react-grid-gallery";
-import Gallery from "react-photo-gallery";
+import Gallery from "react-grid-gallery";
+// import Gallery from "react-photo-gallery";
 import reactImageSize from "react-image-size";
 
 import "./css/oswald.css";
@@ -15,7 +15,6 @@ const CONTRACT_ADDRESS = "0x2f664736a56518C1E6c715015dd3a75c7706396C";
 
 const App = () => {
   const [currentAccount, setCurrentAccount] = useState("");
-  const [ipfsHash, setIpfsHash] = useState("");
   const [buffer, setBuffer] = useState("");
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -57,8 +56,9 @@ const App = () => {
             console.log(width, height);
             return {
               src: imgUrl,
-              width,
-              height,
+              thumbnail: imgUrl,
+              thumbnailWidth: width,
+              thumbnailHeight: height,
             };
           });
           Promise.all(yourImages).then((images) => {
@@ -131,19 +131,16 @@ const App = () => {
           console.warn("Mining...please wait.");
           await Txn.wait();
           console.log(Txn);
-          console.log(
+          alert(
             `Mined, see transaction: https://rinkeby.etherscan.io/tx/${Txn.hash}`
           );
           setLoading(false);
         } else {
           console.log("Ethereum object doesn't exist!");
         }
-        console.log(loading);
       } catch (error) {
         console.log(error);
       }
-      setIpfsHash(result[0].hash);
-      console.log(result[0].hash);
     });
   };
   useEffect(() => {
@@ -164,9 +161,6 @@ const App = () => {
     <main className="container">
       <div className="pure-g">
         <div className="pure-u-1-1">
-          <h1>Your Image</h1>
-          <p>This image is stored on IPFS & The Ethereum Blockchain!</p>
-          <img src={`https://ipfs.io/ipfs/${ipfsHash}`} alt="" />
           <h2>Upload Image</h2>
           <form onSubmit={onSubmit}>
             <input type="file" onChange={captureFile} />
@@ -181,7 +175,11 @@ const App = () => {
   const renderLoading = () => {
     return (
       <main className="container">
-        <img src="https://c.tenor.com/7zKZuIk31GEAAAAM/bird-dance.gif" />
+        <img
+          className="loading"
+          src="https://c.tenor.com/7zKZuIk31GEAAAAM/bird-dance.gif"
+          alt="Loading"
+        />
       </main>
     );
   };
@@ -189,13 +187,17 @@ const App = () => {
   return (
     <div className="App">
       <nav className="navbar pure-menu pure-menu-horizontal">
-        <a href="#" className="pure-menu-heading pure-menu-link">
+        <a
+          href="https://github.com/SHUBHAM14111/ipfs-image-uploader-dapp"
+          className="pure-menu-heading pure-menu-link"
+        >
           IPFS Image Upload DApp
         </a>
       </nav>
       {currentAccount === "" ? renderNotConnectedContainer() : renderUploadUi()}
       <h2>Images associated with {currentAccount}</h2>
-      <Gallery photos={images} />
+      <p>This images are stored on IPFS & The Ethereum Blockchain!</p>
+      <Gallery images={images} />
     </div>
   );
 };
